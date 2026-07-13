@@ -1,0 +1,29 @@
+{
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "description": "Single public API entry for Research Ambit: routes /api, /search, /chat-api to internal services, enforces session auth for chat, injects trusted identity headers",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "NODE_ENV=development node --watch src/server.js",
+    "lint": "node --check src/server.js && node --check src/config.js && node --check src/middleware/requestLogger.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.5",
+    "@grpc/proto-loader": "^0.7.13",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
+    "multer": "^2.0.0",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^10.3.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
