@@ -3,10 +3,12 @@
 #   docker compose builds with context: . , dockerfile: api-gateway/Dockerfile
 FROM node:20-alpine
 
+# Build-only: ARG is visible to RUN (so npm can reach the registry via the
+# campus proxy) but is NOT baked into the image. Never ENV these — grpc-js
+# would honour them at runtime and route internal calls (envoy:10000) through
+# the proxy, which cannot reach Docker DNS names.
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
-ENV HTTP_PROXY=$HTTP_PROXY
-ENV HTTPS_PROXY=$HTTPS_PROXY
 
 WORKDIR /app
 

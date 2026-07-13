@@ -1,7 +1,7 @@
 // Trusted identity headers injected by the gateway after VerifyToken.
 // Client-supplied copies are ALWAYS stripped before proxying (see proxy.js),
 // so downstream services can trust these values unconditionally.
-export const IDENTITY_HEADERS = ['x-user-id', 'x-user-email', 'x-user-kerberos'];
+export const IDENTITY_HEADERS = ['x-user-id', 'x-user-email', 'x-user-kerberos', 'x-user-category'];
 
 /**
  * @param {import('../ports/tokenVerifier.js').TokenVerifier} tokenVerifier
@@ -55,5 +55,6 @@ export function applyIdentityHeaders(proxyReq, identity) {
         proxyReq.setHeader('x-user-id', identity.userId);
         proxyReq.setHeader('x-user-email', identity.email);
         proxyReq.setHeader('x-user-kerberos', identity.kerberos);
+        proxyReq.setHeader('x-user-category', identity.category);
     }
 }
