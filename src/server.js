@@ -6,6 +6,7 @@ import 'dotenv/config';
 import config from './config.js';
 import { createLogger } from './logger.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { metricsMiddleware, metricsRouter } from './metrics.js';
 import GrpcTokenVerifier from './adapters/grpcTokenVerifier.js';
 import { createGrpcClients } from './grpc/clients.js';
 import proxyRoutes from './routes/proxy.js';
@@ -24,12 +25,14 @@ function start() {
     const grpcClients = createGrpcClients(config.grpc);
 
     app.use(requestLogger(logger));
+    app.use(metricsMiddleware);
 
     if (config.corsOrigin) {
         app.use(cors({ origin: config.corsOrigin, credentials: true }));
     }
 
     app.use(cookieParser());
+    app.use(metricsRouter);
     app.use(healthRoutes({ config, logger }));
     // /api/auth (+ /chat-api) stay HTTP proxies; register BEFORE the gRPC /api
     // router so the auth path is never captured by directory routing.
