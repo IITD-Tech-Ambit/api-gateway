@@ -171,11 +171,59 @@ export function mapAtlasIndices(msg) {
     };
 }
 
+export function mapAtlasRefine(msg) {
+    return {
+        baseQuery: msg.base_query ?? '',
+        query: msg.query ?? '',
+        baseCount: msg.base_count ?? 0,
+        matchCount: msg.match_count ?? 0,
+        indices: msg.indices ?? [],
+        points: (msg.points ?? []).map((p) => ({
+            i: p.i,
+            x: p.x,
+            y: p.y,
+            z: p.z,
+            id: p.id || '',
+            title: p.title || '',
+            theme: p.theme || '',
+            department: p.department || '',
+        })),
+    };
+}
+
 export function mapAtlasFacultyIndices(msg) {
     return {
         facultyIds: msg.faculty_ids ?? [],
         matchCount: msg.match_count ?? 0,
         indices: msg.indices ?? []
+    };
+}
+
+export function mapAtlasSuggest(msg) {
+    const mapTerm = (t) => ({
+        kind: t.kind ?? '',
+        key: t.key ?? '',
+        label: t.label ?? '',
+        paperCount: t.paper_count ?? 0,
+        facultyCount: t.faculty_count ?? 0,
+        deptCount: t.dept_count ?? 0
+    });
+    return {
+        query: msg.query ?? '',
+        themes: (msg.themes ?? []).map(mapTerm),
+        topics: (msg.topics ?? []).map(mapTerm),
+        faculty: (msg.faculty ?? []).map((f) => ({
+            facultyId: f.faculty_id ?? '',
+            name: f.name ?? '',
+            department: f.department ?? '',
+            paperCount: f.paper_count ?? 0,
+            atlasCount: f.atlas_count ?? 0
+        })),
+        departments: (msg.departments ?? []).map((dep) => ({
+            department: dep.department ?? '',
+            facultyCount: dep.faculty_count ?? 0,
+            paperCount: dep.paper_count ?? 0
+        }))
     };
 }
 

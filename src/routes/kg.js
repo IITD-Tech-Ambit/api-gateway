@@ -85,6 +85,22 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
         finish: ok(d.mapAtlasIndices, 'Success')
     }));
 
+    router.get('/atlas/refine', (req, res) => call(req, res, {
+        client: 'knowledgeGraph', method: 'SearchAtlasRefine', deadline: atlasDeadline,
+        request: {
+            base_q: req.query.baseQ || req.query.base_q || '',
+            q: req.query.q || '',
+            limit: toInt(req.query.limit),
+        },
+        finish: ok(d.mapAtlasRefine, 'Success')
+    }));
+
+    router.get('/atlas/suggest', (req, res) => call(req, res, {
+        client: 'knowledgeGraph', method: 'SearchAtlasSuggest',
+        request: { q: req.query.q || '', limit: toInt(req.query.limit) },
+        finish: ok(d.mapAtlasSuggest, 'Success')
+    }));
+
     router.get('/atlas/faculty-indices', (req, res) => call(req, res, {
         client: 'knowledgeGraph', method: 'GetAtlasFacultyIndices',
         request: { ids: String(req.query.ids || '').split(',').map((s) => s.trim()).filter(Boolean) },
@@ -131,7 +147,18 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
             indices: String(req.query.indices || '')
                 .split(',').map((s) => Number.parseInt(s, 10)).filter(Number.isFinite)
         },
-        finish: ok((r) => ({ points: (r.points || []).map((p) => ({ i: p.i, x: p.x, y: p.y, z: p.z })) }), 'Success')
+        finish: ok((r) => ({
+            points: (r.points || []).map((p) => ({
+                i: p.i,
+                x: p.x,
+                y: p.y,
+                z: p.z,
+                id: p.id || '',
+                title: p.title || '',
+                theme: p.theme || '',
+                department: p.department || '',
+            })),
+        }), 'Success')
     }));
 
     // Raw quantized bytes (not enveloped); immutable per build => long cache.
