@@ -16,7 +16,11 @@ COPY api-gateway/package*.json ./
 RUN npm install --omit=dev
 
 COPY api-gateway/src ./src
-COPY protos /app/protos
+# protos/ is the proto-registry submodule; its own repo layout nests actual
+# packages under proto/ (matches proto-registry's own structure), so we copy
+# that subdirectory's contents, not the submodule root, to land packages
+# directly at /app/protos/<pkg>/v1/... as loadProto.js expects.
+COPY protos/proto /app/protos
 
 ENV PROTO_DIR=/app/protos
 ENV NODE_ENV=production
