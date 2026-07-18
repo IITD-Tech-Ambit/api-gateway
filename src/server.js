@@ -80,4 +80,3 @@ function start() {
 }
 
 start();
-// coolify-webhook-test: 1784379032
