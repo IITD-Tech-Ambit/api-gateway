@@ -5,9 +5,10 @@ import protoLoader from '@grpc/proto-loader';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// protos/ sits next to api-gateway/ in the workspace; the Docker image copies
-// it to /app/protos (see Dockerfile). PROTO_DIR overrides for other layouts.
-const PROTO_DIR = process.env.PROTO_DIR || path.resolve(__dirname, '../../../protos');
+// protos/ is this repo's own committed copy of its needed proto files; the
+// Docker image copies it to /app/protos (see Dockerfile). PROTO_DIR
+// overrides for other layouts (e.g. local dev against the repo root).
+const PROTO_DIR = process.env.PROTO_DIR || path.resolve(__dirname, '../../protos');
 
 const LOADER_OPTIONS = {
     keepCase: true,

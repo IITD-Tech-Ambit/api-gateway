@@ -1,6 +1,8 @@
 # api-gateway — single public API entry (Express)
-# Build context is the workspace root so /protos can be copied in:
-#   docker compose builds with context: . , dockerfile: api-gateway/Dockerfile
+# Self-contained build: context is this repo's own root, so it can be built
+# standalone (e.g. by Coolify, which only clones this repo) as well as from
+# the vm-infra workspace root via docker-compose (context: ./api-gateway,
+# dockerfile: Dockerfile).
 FROM node:20-alpine
 
 # Build-only: ARG is visible to RUN (so npm can reach the registry via the
@@ -12,15 +14,16 @@ ARG HTTPS_PROXY
 
 WORKDIR /app
 
-COPY api-gateway/package*.json ./
+COPY package*.json ./
 RUN npm install --omit=dev
 
-COPY api-gateway/src ./src
-# protos/ is the proto-registry submodule; its own repo layout nests actual
-# packages under proto/ (matches proto-registry's own structure), so we copy
-# that subdirectory's contents, not the submodule root, to land packages
-# directly at /app/protos/<pkg>/v1/... as loadProto.js expects.
-COPY protos/proto /app/protos
+COPY src ./src
+# protos/ is this repo's own committed copy of the proto files it needs
+# (auth/v1, directory/v1, search/v1), synced from proto-registry — not a
+# submodule and not a sibling workspace directory, so it exists in a
+# standalone clone of this repo alone. Matches the pattern used by
+# auth-service, research-ambit-main, SEO-Backend-iitd.
+COPY protos /app/protos
 
 ENV PROTO_DIR=/app/protos
 ENV NODE_ENV=production
