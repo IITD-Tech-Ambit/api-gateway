@@ -1,17 +1,13 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
 import grpc from '@grpc/grpc-js';
 import protoLoader from '@grpc/proto-loader';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
-// Proto contracts come from the @iitd-tech-ambit/protos package (published
-// from github.com/IITD-Tech-Ambit/proto-registry). PROTO_DIR overrides for
-// local layouts that don't have it installed as a dependency.
-const PROTO_DIR = process.env.PROTO_DIR ||
-    path.join(path.dirname(require.resolve('@iitd-tech-ambit/protos/package.json')), 'proto');
+// protos/ sits next to api-gateway/ in the workspace; the Docker image copies
+// it to /app/protos (see Dockerfile). PROTO_DIR overrides for other layouts.
+const PROTO_DIR = process.env.PROTO_DIR || path.resolve(__dirname, '../../../protos');
 
 const LOADER_OPTIONS = {
     keepCase: true,
