@@ -12,7 +12,11 @@ import { makeRequireSession, applyIdentityHeaders } from '../auth/sessionAuth.js
  */
 export default function proxyRoutes({ config, tokenVerifier, logger }) {
     const router = Router();
-    const requireSession = makeRequireSession(tokenVerifier, config.session, logger);
+    const requireSession = makeRequireSession(
+        tokenVerifier,
+        { ...config.session, enableAuth: config.enableAuth },
+        logger
+    );
 
     function onError(err, req, res) {
         req.log?.error({
