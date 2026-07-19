@@ -3,6 +3,11 @@ export default {
     host: process.env.HOST || '0.0.0.0',
     logLevel: process.env.LOG_LEVEL || 'info',
 
+    // Secure-by-default auth toggle. MUST stay true (or unset) in production.
+    // Only an explicit ENABLE_AUTH=false bypasses session enforcement, injecting
+    // a mock dev identity so protected routes are testable without IITD OAuth.
+    enableAuth: (process.env.ENABLE_AUTH || 'true') !== 'false',
+
     // Upstream HTTP services (north-south edge hops; east-west stays gRPC).
     upstreams: {
         authService: process.env.AUTH_SERVICE_URL || 'http://auth-service:4000',

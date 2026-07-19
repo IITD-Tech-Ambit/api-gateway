@@ -1,3 +1,5 @@
+import { DEV_IDENTITY } from './devIdentity.js';
+
 // Trusted identity headers injected by the gateway after VerifyToken.
 // Client-supplied copies are ALWAYS stripped before proxying (see proxy.js),
 // so downstream services can trust these values unconditionally.
@@ -5,11 +7,16 @@ export const IDENTITY_HEADERS = ['x-user-id', 'x-user-email', 'x-user-kerberos',
 
 /**
  * @param {import('../ports/tokenVerifier.js').TokenVerifier} tokenVerifier
- * @param {{ cookieName: string }} sessionConfig
+ * @param {{ cookieName: string, enableAuth?: boolean }} sessionConfig
  * @param {import('pino').Logger} logger
  */
-export function makeRequireSession(tokenVerifier, { cookieName }, logger) {
+export function makeRequireSession(tokenVerifier, { cookieName, enableAuth = true }, logger) {
     return async function requireSession(req, res, next) {
+        if (!enableAuth) {
+            req.identity = { ...DEV_IDENTITY };
+            return next();
+        }
+
         const token = req.cookies?.[cookieName];
         if (!token) {
             logger.warn({ path: req.path, reason: 'no_token' }, 'chat auth denied');
