@@ -195,6 +195,20 @@ test('mapSuggest: groups + meta', () => {
     assert.deepEqual(out.meta, { took_ms: 4, cache_hit: true });
 });
 
+test('mapIpSuggest: inventors + documents + meta', () => {
+    const out = s.mapIpSuggest({
+        intent: 'inventor', confidence: 0.9,
+        groups: {
+            inventors: [{ id: 'i1', name: 'N', is_faculty: true, kerberos: 'abc', score: 0.8 }],
+            documents: [{ id: 'd1', title: 'T', year: 2021, type_of_ip: 'Patent', lead_inventor: 'L', score: 0.6 }]
+        },
+        meta: { took_ms: 3, cache_hit: false }
+    });
+    assert.equal(out.groups.inventors[0].kerberos, 'abc');
+    assert.equal(out.groups.documents[0].type_of_ip, 'Patent');
+    assert.deepEqual(out.meta, { took_ms: 3, cache_hit: false });
+});
+
 test('mapFacultyForQuery: top-level took_ms/cache_hit re-nested under meta', () => {
     const out = s.mapFacultyForQuery({
         departments: [{ name: 'CS', total_paper_count: 3, faculty: [{ name: 'N', author_id: '1', paper_count: 3, relevance_score: 0.9 }] }],

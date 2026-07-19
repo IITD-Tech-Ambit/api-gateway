@@ -130,6 +130,45 @@ export default function searchRoutes({ search, taxonomy, deadline }) {
         finish: raw(s.mapCollaborators)
     }));
 
+    v1.get('/ip/suggest', (req, res) => call(req, res, {
+        client: 'search', method: 'IpSuggest',
+        request: { q: req.query.q || '', limit: toInt(req.query.limit) },
+        finish: raw(s.mapIpSuggest)
+    }));
+
+    v1.post('/ip/search', json, (req, res) => {
+        const b = req.body || {};
+        return call(req, res, {
+            client: 'search', method: 'IpSearch',
+            request: {
+                query: b.query || '',
+                filters: b.filters,
+                sort: b.sort || '',
+                page: toInt(b.page),
+                per_page: toInt(b.per_page),
+                search_in: b.search_in || [],
+                mode: b.mode || '',
+                refine_within: b.refine_within,
+                refine_chain: b.refine_chain || [],
+                rerank: b.rerank
+            },
+            finish: raw(s.mapSearchBody)
+        });
+    });
+
+    v1.get('/ip/document/:id', (req, res) => call(req, res, {
+        client: 'search', method: 'GetIpDocument',
+        request: { id: req.params.id },
+        finish: (response, r) => {
+            if (!response.found) {
+                return sendSearchError(r, notFoundError(
+                    `IP document with ID ${req.params.id} not found`
+                ));
+            }
+            return r.status(200).json(s.mapDocument(response));
+        }
+    }));
+
     v1.get('/taxonomy/departments', (req, res) => call(req, res, {
         client: 'taxonomy', method: 'GetDepartments', request: {},
         finish: raw(s.mapTaxDepartments)

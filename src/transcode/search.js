@@ -48,6 +48,32 @@ export function mapSuggest(msg) {
     };
 }
 
+export function mapIpSuggest(msg) {
+    const groups = msg.groups ?? {};
+    return {
+        intent: msg.intent ?? 'mixed',
+        confidence: msg.confidence ?? 0,
+        groups: {
+            inventors: (groups.inventors ?? []).map((inv) => ({
+                id: inv.id ?? '',
+                name: inv.name ?? '',
+                is_faculty: Boolean(inv.is_faculty),
+                kerberos: inv.kerberos ?? '',
+                score: inv.score ?? 0
+            })),
+            documents: (groups.documents ?? []).map((doc) => ({
+                id: doc.id ?? '',
+                title: doc.title ?? '',
+                year: doc.year ?? 0,
+                type_of_ip: doc.type_of_ip ?? '',
+                lead_inventor: doc.lead_inventor ?? '',
+                score: doc.score ?? 0
+            }))
+        },
+        meta: mapMeta(msg.meta)
+    };
+}
+
 // FacultyForQuery carries took_ms/cache_hit at the top level over the wire;
 // the REST body nests them under `meta`.
 export function mapFacultyForQuery(msg) {
