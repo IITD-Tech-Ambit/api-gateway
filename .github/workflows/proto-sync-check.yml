@@ -1,0 +1,48 @@
+name: Proto sync check
+
+# Independent safety net, separate from pull-proto.yml's automation: verifies
+# every proto file this repo depends on (per .proto-deps.json) is byte-
+# identical to proto-registry's current main, regardless of whether the pull
+# automation actually ran, succeeded, or was skipped. Non-blocking on plain
+# pushes to main (early warning); required (branch-protected) on PRs into
+# prod, so a stale proto file cannot physically reach prod even if the
+# dispatch/pull chain silently failed somewhere upstream.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [prod]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+        with:
+          path: consumer
+
+      - name: Checkout proto-registry
+        uses: actions/checkout@v4
+        with:
+          repository: IITD-Tech-Ambit/proto-registry
+          path: proto-registry
+
+      - name: Diff every declared proto dependency against the registry
+        working-directory: consumer
+        run: |
+          FAILED=0
+          for pkg in $(python3 -c "import json; print(' '.join(json.load(open('.proto-deps.json')).keys()))"); do
+            LOCAL_PATH=$(python3 -c "import json; print(json.load(open('.proto-deps.json'))['$pkg'])")
+            PKG_NAME=$(echo "$pkg" | cut -d. -f1)
+            PKG_VER=$(echo "$pkg" | cut -d. -f2)
+            REGISTRY_PATH="../proto-registry/proto/${PKG_NAME}/${PKG_VER}/${PKG_NAME}.proto"
+            if ! diff -q "$REGISTRY_PATH" "$LOCAL_PATH" > /dev/null 2>&1; then
+              echo "::error::${pkg} is out of sync with proto-registry (local: ${LOCAL_PATH})"
+              diff "$REGISTRY_PATH" "$LOCAL_PATH" || true
+              FAILED=1
+            else
+              echo "${pkg}: in sync"
+            fi
+          done
+          exit $FAILED

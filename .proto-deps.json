@@ -1,0 +1,5 @@
+{
+  "auth.v1": "protos/auth/v1/auth.proto",
+  "directory.v1": "protos/directory/v1/directory.proto",
+  "search.v1": "protos/search/v1/search.proto"
+}
