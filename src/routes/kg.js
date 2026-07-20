@@ -92,6 +92,7 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
             q: req.query.q || '',
             limit: toInt(req.query.limit),
             entity: req.query.entity || '',
+            base_entity: req.query.baseEntity || req.query.base_entity || '',
         },
         finish: ok(d.mapAtlasRefine, 'Success')
     }));
