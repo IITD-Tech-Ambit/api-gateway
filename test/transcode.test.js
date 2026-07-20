@@ -165,11 +165,20 @@ test('mapAtlasIndices / faculty-search camelCase counts', () => {
 test('mapAtlasClusterBreakdown', () => {
     const out = d.mapAtlasClusterBreakdown({
         theme: 'T', query: 'q', total_papers: 2,
-        departments: [{ department: 'CS', paper_count: 2, papers: [{ id: 'p', i: 1, title: 't', domain: 'd', topic: 'to', citations: 9 }] }]
+        departments: [{
+            department: 'CS', paper_count: 2,
+            papers: [{ id: 'p', i: 1, title: 't', domain: 'd', topic: 'to', citations: 9 }],
+            faculty: [{
+                faculty_id: 'f1', name: 'Prof X', paper_count: 1,
+                papers: [{ id: 'p', i: 1, title: 't', domain: 'd', topic: 'to', citations: 9 }]
+            }]
+        }]
     });
     assert.equal(out.totalPapers, 2);
     assert.equal(out.departments[0].paperCount, 2);
     assert.equal(out.departments[0].papers[0].citations, 9);
+    assert.equal(out.departments[0].faculty[0].facultyId, 'f1');
+    assert.equal(out.departments[0].faculty[0].name, 'Prof X');
 });
 
 // ---------------------------------------------------------------------------

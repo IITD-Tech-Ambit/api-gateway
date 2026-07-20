@@ -186,6 +186,7 @@ export function mapAtlasRefine(msg) {
             id: p.id || '',
             title: p.title || '',
             theme: p.theme || '',
+            domain: p.domain || '',
             department: p.department || '',
         })),
     };
@@ -223,6 +224,17 @@ export function mapAtlasSuggest(msg) {
             department: dep.department ?? '',
             facultyCount: dep.faculty_count ?? 0,
             paperCount: dep.paper_count ?? 0
+        })),
+        papers: (msg.papers ?? []).map((p) => ({
+            id: p.id ?? '',
+            i: p.i ?? 0,
+            title: p.title ?? '',
+            theme: p.theme ?? '',
+            department: p.department ?? ''
+        })),
+        keywords: (msg.keywords ?? []).map((k) => ({
+            term: k.term ?? '',
+            paperCount: k.paper_count ?? 0
         }))
     };
 }
@@ -278,6 +290,19 @@ export function mapAtlasClusterBreakdown(msg) {
                 domain: p.domain ?? '',
                 topic: p.topic ?? '',
                 citations: p.citations ?? 0
+            })),
+            faculty: (d.faculty ?? []).map((f) => ({
+                facultyId: f.faculty_id ?? '',
+                name: f.name ?? '',
+                paperCount: f.paper_count ?? 0,
+                papers: (f.papers ?? []).map((p) => ({
+                    id: p.id ?? '',
+                    i: p.i ?? 0,
+                    title: p.title ?? '',
+                    domain: p.domain ?? '',
+                    topic: p.topic ?? '',
+                    citations: p.citations ?? 0
+                }))
             }))
         }))
     };

@@ -91,6 +91,7 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
             base_q: req.query.baseQ || req.query.base_q || '',
             q: req.query.q || '',
             limit: toInt(req.query.limit),
+            entity: req.query.entity || '',
         },
         finish: ok(d.mapAtlasRefine, 'Success')
     }));
@@ -156,6 +157,7 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
                 id: p.id || '',
                 title: p.title || '',
                 theme: p.theme || '',
+                domain: p.domain || '',
                 department: p.department || '',
             })),
         }), 'Success')
