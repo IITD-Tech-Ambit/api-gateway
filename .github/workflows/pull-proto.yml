@@ -39,7 +39,6 @@ jobs:
             exit 0
           fi
 
-          # PACKAGE is e.g. "directory.v1" -> proto/directory/v1/directory.proto
           PKG_NAME=$(echo "$PACKAGE" | cut -d. -f1)
           PKG_VER=$(echo "$PACKAGE" | cut -d. -f2)
           REGISTRY_PATH="../proto-registry/proto/${PKG_NAME}/${PKG_VER}/${PKG_NAME}.proto"
