@@ -205,6 +205,7 @@ export function mapTaxonomyFaculty(msg) {
     return {
         kerberos_list: msg.kerberos_list ?? [],
         faculty_total: msg.faculty_total ?? 0,
+        recommended_count: msg.recommended_count ?? 0,
         pagination: mapSearchPagination(msg.pagination),
         meta: mapMeta(msg.meta)
     };
