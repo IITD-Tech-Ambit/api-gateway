@@ -121,6 +121,12 @@ export default function kgRoutes({ knowledgeGraph, deadline, atlasDeadline }) {
         finish: ok(d.mapAtlasDepartmentIndices, 'Success')
     }));
 
+    router.get('/atlas/year-indices', (req, res) => call(req, res, {
+        client: 'knowledgeGraph', method: 'GetAtlasYearIndices',
+        request: { since_year: toInt(req.query.sinceYear || req.query.since_year) },
+        finish: ok(d.mapAtlasYearIndices, 'Success')
+    }));
+
     router.get('/atlas/department-search', (req, res) => call(req, res, {
         client: 'knowledgeGraph', method: 'SearchAtlasDepartment',
         request: { q: req.query.q || '', limit: toInt(req.query.limit) },

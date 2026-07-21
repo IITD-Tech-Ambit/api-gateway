@@ -262,6 +262,14 @@ export function mapAtlasDepartmentIndices(msg) {
     };
 }
 
+export function mapAtlasYearIndices(msg) {
+    return {
+        sinceYear: msg.since_year ?? 0,
+        matchCount: msg.match_count ?? 0,
+        indices: msg.indices ?? []
+    };
+}
+
 export function mapAtlasDepartmentSearch(msg) {
     return {
         query: msg.query ?? '',
