@@ -87,7 +87,12 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
     // x-user-kerberos.
     const isFacultySelfEdit = (pathname, req) =>
         (req?.method === 'POST' && /^\/api\/directory\/faculty\/[^/]+\/image$/.test(pathname)) ||
-        (req?.method === 'PATCH' && /^\/api\/directory\/faculty\/[^/]+\/visibility$/.test(pathname));
+        (req?.method === 'PATCH' && /^\/api\/directory\/faculty\/[^/]+\/visibility$/.test(pathname)) ||
+        // Background / Qualifications: owner-only GET (full content incl. hidden,
+        // for the edit view) + PATCH (save). Session-gated so x-user-kerberos is
+        // injected; must be matched here, before the anonymous directory reads.
+        ((req?.method === 'GET' || req?.method === 'PATCH') &&
+            /^\/api\/directory\/faculty\/[^/]+\/profile-extras$/.test(pathname));
 
     router.use((req, res, next) =>
         isFacultySelfEdit(req.path, req) ? requireSession(req, res, next) : next());
