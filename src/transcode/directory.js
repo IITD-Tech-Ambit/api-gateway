@@ -35,9 +35,18 @@ export function mapFacultyCard(card) {
         citationCount: card.citation_count ?? 0,
         hIndex: card.h_index ?? 0,
         research_areas: card.research_areas ?? [],
+        dominant_domains: (card.dominant_domains ?? []).map(mapDominantDomain),
         department: mapDepartment(card.department),
         profileImageUrl: isAbsent(card.profile_image_url) ? null : card.profile_image_url,
         designation: isAbsent(card.designation) ? null : card.designation
+    };
+}
+
+function mapDominantDomain(d) {
+    return {
+        name: d.name ?? '',
+        slug: d.slug ?? '',
+        paperCount: d.paper_count ?? 0
     };
 }
 
@@ -60,6 +69,7 @@ export function mapFaculty(faculty) {
     assignOrNull(out, 'profileImageUrl', faculty.profile_image_url);
     assignOrNull(out, 'designation', faculty.designation);
     out.workingFromYear = isAbsent(faculty.working_from_year) ? null : faculty.working_from_year;
+    out.dominant_domains = (faculty.dominant_domains ?? []).map(mapDominantDomain);
     return out;
 }
 

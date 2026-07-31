@@ -99,5 +99,31 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
         on: proxyHooks('backend', (req) => req.identity ?? null)
     }));
 
+    // Directory READS that carry per-faculty metrics (or profile-only fields) must
+    // bypass gRPC: the directory.v1 proto has no `metricVisibility` field, and a
+    // redacted (null) metric transcodes to 0 — so hidden metrics would leak/render
+    // as "0" in the browser. These GET reads go over HTTP instead (the backend
+    // returns the SAME `{success,message,data,timestamp}` envelope), so the
+    // visibility flags + null redaction reach the frontend. Everything else in
+    // /api/directory (unit summaries, /:id, batch resolves, publications) stays
+    // gRPC. Public reads → no identity attached (client x-user-* headers stripped).
+    const isDirectoryHttpRead = (pathname, req) => {
+        if (req?.method !== 'GET') return false;
+        return (
+            pathname === '/api/directory' || pathname === '/api/directory/' ||
+            /^\/api\/directory\/search$/.test(pathname) ||
+            /^\/api\/directory\/grouped$/.test(pathname) ||
+            /^\/api\/directory\/grouped\/[^/]+\/faculties$/.test(pathname) ||
+            /^\/api\/directory\/faculty\/[^/]+\/(profile|research-summary)$/.test(pathname)
+        );
+    };
+
+    router.use(createProxyMiddleware({
+        pathFilter: isDirectoryHttpRead,
+        target: config.upstreams.backend,
+        changeOrigin: true,
+        on: proxyHooks('backend')
+    }));
+
     return router;
 }
