@@ -79,15 +79,38 @@ export default function searchRoutes({ search, taxonomy, deadline }) {
         finish: raw(s.mapSuggest)
     }));
 
-    // NOTE: the frozen proto FacultyForQueryRequest carries only query/mode/
-    // search_in; refine_within/refine_chain/filters query params are NOT part
-    // of the contract and are dropped here (flagged for review).
+    // refine_chain/filters arrive JSON-encoded in the query string, same convention as
+    // POST /search's body fields (see tech-ambit-explorer's useAllFacultyForQuery) — this
+    // route previously dropped them entirely (the proto didn't carry them either), so the
+    // People sidebar never actually narrowed on a refine step even though the papers list
+    // and the drill-down (both POST-based, already wired) did.
+    const parseJsonArray = (raw) => {
+        if (!raw) return [];
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : [];
+        } catch {
+            return [];
+        }
+    };
+    const parseJsonObject = (raw) => {
+        if (!raw) return undefined;
+        try {
+            const parsed = JSON.parse(raw);
+            return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : undefined;
+        } catch {
+            return undefined;
+        }
+    };
     v1.get('/search/faculty-for-query', (req, res) => call(req, res, {
         client: 'search', method: 'FacultyForQuery',
         request: {
             query: req.query.query || '',
             mode: req.query.mode || '',
-            search_in: String(req.query.search_in || '').split(',').map((x) => x.trim()).filter(Boolean)
+            search_in: String(req.query.search_in || '').split(',').map((x) => x.trim()).filter(Boolean),
+            refine_within: req.query.refine_within || undefined,
+            refine_chain: parseJsonArray(req.query.refine_chain),
+            filters: parseJsonObject(req.query.filters)
         },
         finish: raw(s.mapFacultyForQuery)
     }));
