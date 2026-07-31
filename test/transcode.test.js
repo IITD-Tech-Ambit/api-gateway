@@ -39,7 +39,7 @@ test('mapFacultyCard: null image/designation, department null when absent', () =
     };
     assert.deepEqual(d.mapFacultyCard(card), {
         _id: 'f1', name: 'Dr A', email: 'a@iitd.ac.in',
-        citationCount: 12, hIndex: 5, research_areas: ['ML'],
+        citationCount: 12, hIndex: 5, research_areas: ['ML'], dominant_domains: [],
         department: null, profileImageUrl: null, designation: null
     });
 });
@@ -59,7 +59,7 @@ test('mapFaculty: absent identifiers OMITTED, workingFromYear null when absent',
         citationCount: 100, hIndex: 9, research_areas: ['NLP'],
         department: { _id: 'd1', name: 'CS', code: 'CSE', category: 'Department' },
         tags: ['all'], profileImageUrl: 'http://img', designation: 'Prof',
-        workingFromYear: null
+        workingFromYear: null, dominant_domains: []
     });
     assert.ok(!('orcId' in out) && !('scopusId' in out) && !('googleScholarId' in out));
 });
@@ -73,7 +73,7 @@ test('mapFaculty: present identifiers appear in source order', () => {
     assert.deepEqual(Object.keys(out), [
         '_id', 'name', 'email', 'citationCount', 'hIndex', 'research_areas',
         'orcId', 'scopusId', 'googleScholarId', 'department', 'tags',
-        'profileImageUrl', 'designation', 'workingFromYear'
+        'profileImageUrl', 'designation', 'workingFromYear', 'dominant_domains'
     ]);
     assert.equal(out.workingFromYear, 2015);
     assert.equal(out.orcId, '0000-1');
