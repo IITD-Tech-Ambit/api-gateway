@@ -80,5 +80,24 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
         on: proxyHooks('chatbot', (req) => req.identity ?? null)
     }));
 
+    // Faculty self-edit of their OWN profile — an image upload (multipart) or a
+    // metric-visibility toggle (JSON). Kept as HTTP proxies (not gRPC); scoped to
+    // exactly these two paths so the rest of /api/directory still flows over gRPC.
+    // Session-gated — the backend enforces owner-only from the injected
+    // x-user-kerberos.
+    const isFacultySelfEdit = (pathname, req) =>
+        (req?.method === 'POST' && /^\/api\/directory\/faculty\/[^/]+\/image$/.test(pathname)) ||
+        (req?.method === 'PATCH' && /^\/api\/directory\/faculty\/[^/]+\/visibility$/.test(pathname));
+
+    router.use((req, res, next) =>
+        isFacultySelfEdit(req.path, req) ? requireSession(req, res, next) : next());
+
+    router.use(createProxyMiddleware({
+        pathFilter: isFacultySelfEdit,
+        target: config.upstreams.backend,
+        changeOrigin: true,
+        on: proxyHooks('backend', (req) => req.identity ?? null)
+    }));
+
     return router;
 }
