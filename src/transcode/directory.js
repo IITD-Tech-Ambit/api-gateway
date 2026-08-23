@@ -24,6 +24,7 @@ export function mapDepartment(dept) {
     assignIfPresent(out, 'name', dept.name);
     assignIfPresent(out, 'code', dept.code);
     assignIfPresent(out, 'category', dept.category);
+    assignIfPresent(out, 'officialUrl', dept.official_url);
     return out;
 }
 
@@ -38,7 +39,8 @@ export function mapFacultyCard(card) {
         dominant_domains: (card.dominant_domains ?? []).map(mapDominantDomain),
         department: mapDepartment(card.department),
         profileImageUrl: isAbsent(card.profile_image_url) ? null : card.profile_image_url,
-        designation: isAbsent(card.designation) ? null : card.designation
+        designation: isAbsent(card.designation) ? null : card.designation,
+        affiliations: (card.affiliations ?? []).map(mapDepartment).filter(Boolean)
     };
 }
 
@@ -70,6 +72,7 @@ export function mapFaculty(faculty) {
     assignOrNull(out, 'designation', faculty.designation);
     out.workingFromYear = isAbsent(faculty.working_from_year) ? null : faculty.working_from_year;
     out.dominant_domains = (faculty.dominant_domains ?? []).map(mapDominantDomain);
+    out.affiliations = (faculty.affiliations ?? []).map(mapDepartment).filter(Boolean);
     return out;
 }
 
