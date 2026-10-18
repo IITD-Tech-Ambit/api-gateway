@@ -1,15 +1,10 @@
-import { Router } from 'express';
+import http from 'http';
 import client from 'prom-client';
 
 /**
  * Prometheus metrics for api-gateway.
  *
- * Single public HTTP entry point (edge + internal networks) — single
- * process, so unlike search-api/backend (PM2 cluster mode) there is no
- * per-worker port to juggle: /metrics is served directly on the app's own
- * port. nginx never proxies anything but /api, /search, /chat-api, /health,
- * /grafana, so this is unreachable from outside even though it shares the
- * public app port.
+ * /metrics is on METRICS_PORT, not the public port: the edge proxy forwards every path.
  *
  * Uses the SAME metric name/label scheme as every other service
  * (http_request_duration_seconds{method,route,status_code}) so dashboards
@@ -37,9 +32,6 @@ function resolveRoute(req) {
 }
 
 export function metricsMiddleware(req, res, next) {
-    if (req.path === '/metrics') {
-        return next();
-    }
     const start = process.hrtime.bigint();
     res.on('finish', () => {
         const seconds = Number(process.hrtime.bigint() - start) / 1e9;
@@ -50,14 +42,21 @@ export function metricsMiddleware(req, res, next) {
     next();
 }
 
-export const metricsRouter = Router();
-metricsRouter.get('/metrics', async (req, res) => {
-    try {
-        res.set('Content-Type', register.contentType);
-        res.end(await register.metrics());
-    } catch (err) {
-        res.status(500).end(String(err));
-    }
-});
+export function startMetricsServer(port, host) {
+    return http.createServer(async (req, res) => {
+        if (req.url !== '/metrics') {
+            res.writeHead(404);
+            return res.end();
+        }
+        try {
+            const body = await register.metrics();
+            res.writeHead(200, { 'Content-Type': register.contentType });
+            res.end(body);
+        } catch (err) {
+            res.writeHead(500);
+            res.end(String(err));
+        }
+    }).listen(port, host);
+}
 
 export { register };

@@ -45,7 +45,8 @@ export default class GrpcTokenVerifier {
                         name: u.name || '',
                         kerberos: u.kerberos || '',
                         department: u.department || '',
-                        category: u.category || ''
+                        category: u.category || '',
+                        role: u.role || ''
                     }
                 });
             });
