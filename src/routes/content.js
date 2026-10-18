@@ -1,13 +1,10 @@
 import express, { Router } from 'express';
-import multer from 'multer';
+import { imageUpload as upload } from '../middleware/upload.js';
 
 import { sendSuccess, sendDirectoryError } from '../transcode/envelopes.js';
 import * as d from '../transcode/directory.js';
 import { createUnaryBridge } from './grpcBridge.js';
 
-// In-memory multipart parsing: the gateway re-packs uploaded files as gRPC
-// FileUpload bytes, so it never touches disk.
-const upload = multer({ storage: multer.memoryStorage() });
 const json = express.json();
 const toInt = (v) => Number.parseInt(v, 10) || 0;
 const fileUpload = (file) =>

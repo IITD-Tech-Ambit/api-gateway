@@ -1,9 +1,6 @@
 import { DEV_IDENTITY } from './devIdentity.js';
 
-// Trusted identity headers injected by the gateway after VerifyToken.
-// Client-supplied copies are ALWAYS stripped before proxying (see proxy.js),
-// so downstream services can trust these values unconditionally.
-export const IDENTITY_HEADERS = ['x-user-id', 'x-user-email', 'x-user-kerberos', 'x-user-category'];
+export const IDENTITY_HEADERS = ['x-user-id', 'x-user-email', 'x-user-kerberos', 'x-user-category', 'x-user-role', 'x-gateway-secret'];
 
 /**
  * @param {import('../ports/tokenVerifier.js').TokenVerifier} tokenVerifier
@@ -55,13 +52,17 @@ export function makeRequireSession(tokenVerifier, { cookieName, enableAuth = tru
  *
  * @param {import('http').ClientRequest} proxyReq
  * @param {import('../ports/tokenVerifier.js').VerifiedIdentity|null} identity
+ * @param {string} [gatewaySecret]
  */
-export function applyIdentityHeaders(proxyReq, identity) {
+export function applyIdentityHeaders(proxyReq, identity, gatewaySecret) {
     for (const h of IDENTITY_HEADERS) proxyReq.removeHeader(h);
     if (identity) {
         proxyReq.setHeader('x-user-id', identity.userId);
         proxyReq.setHeader('x-user-email', identity.email);
         proxyReq.setHeader('x-user-kerberos', identity.kerberos);
         proxyReq.setHeader('x-user-category', identity.category);
+        if (identity.role) proxyReq.setHeader('x-user-role', identity.role);
+        // Only with a verified identity, so downstream can reject client-supplied x-user-* headers.
+        if (gatewaySecret) proxyReq.setHeader('x-gateway-secret', gatewaySecret);
     }
 }

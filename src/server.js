@@ -1,12 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import multer from 'multer';
 import 'dotenv/config';
 
 import config from './config.js';
 import { createLogger } from './logger.js';
 import { requestLogger } from './middleware/requestLogger.js';
-import { metricsMiddleware, metricsRouter } from './metrics.js';
+import { metricsMiddleware, startMetricsServer } from './metrics.js';
 import GrpcTokenVerifier from './adapters/grpcTokenVerifier.js';
 import { createGrpcClients } from './grpc/clients.js';
 import proxyRoutes from './routes/proxy.js';
@@ -16,6 +17,13 @@ import healthRoutes from './routes/health.js';
 
 function start() {
     const logger = createLogger(config.logLevel);
+    if (!config.enableAuth && config.production) {
+        logger.fatal('ENABLE_AUTH=false is not allowed when NODE_ENV=production — refusing to bypass IITD OAuth');
+        process.exit(1);
+    }
+    if (!config.gatewaySecret && config.production) {
+        logger.warn('GATEWAY_SHARED_SECRET is not set — downstream services cannot verify that identity headers came from the gateway');
+    }
     const app = express();
     app.disable('x-powered-by');
 
@@ -32,7 +40,6 @@ function start() {
     }
 
     app.use(cookieParser());
-    app.use(metricsRouter);
     app.use(healthRoutes({ config, logger }));
     // /api/auth (+ /chat-api) stay HTTP proxies; register BEFORE the gRPC /api
     // router so the auth path is never captured by directory routing.
@@ -45,6 +52,14 @@ function start() {
     }));
 
     app.use((error, req, res, next) => {
+        if (error instanceof multer.MulterError) {
+            const tooLarge = error.code === 'LIMIT_FILE_SIZE';
+            return res.status(tooLarge ? 413 : 400).json({
+                error: tooLarge ? 'Payload Too Large' : 'Bad Request',
+                message: tooLarge ? 'Image must be under 5 MB.' : 'Invalid file upload.',
+                statusCode: tooLarge ? 413 : 400
+            });
+        }
         req.log?.error({ err: error }, 'unhandled error');
         res.status(error.statusCode || 502).json({
             error: 'Bad Gateway',
@@ -62,6 +77,7 @@ function start() {
         }, 'api-gateway listening');
     });
     server.requestTimeout = 0;
+    const metricsServer = startMetricsServer(config.metricsPort, config.host);
 
     const signals = ['SIGINT', 'SIGTERM'];
     for (const signal of signals) {
@@ -69,6 +85,7 @@ function start() {
             logger.info({ signal }, 'shutting down');
             tokenVerifier.close();
             grpcClients.close();
+            metricsServer.close();
             server.close(() => process.exit(0));
         });
     }

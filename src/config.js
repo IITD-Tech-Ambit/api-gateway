@@ -1,5 +1,7 @@
 export default {
+    production: process.env.NODE_ENV === 'production',
     port: parseInt(process.env.PORT || '8080', 10),
+    metricsPort: parseInt(process.env.METRICS_PORT || '9100', 10),
     host: process.env.HOST || '0.0.0.0',
     logLevel: process.env.LOG_LEVEL || 'info',
 
@@ -7,6 +9,8 @@ export default {
     // Only an explicit ENABLE_AUTH=false bypasses session enforcement, injecting
     // a mock dev identity so protected routes are testable without IITD OAuth.
     enableAuth: (process.env.ENABLE_AUTH || 'true') !== 'false',
+
+    gatewaySecret: process.env.GATEWAY_SHARED_SECRET || '',
 
     // Upstream HTTP services (north-south edge hops; east-west stays gRPC).
     upstreams: {

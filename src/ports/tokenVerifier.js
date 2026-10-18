@@ -8,6 +8,7 @@
  * @property {string} kerberos
  * @property {string} department
  * @property {string} category
+ * @property {string} [role]  "superadmin" when the user is in auth-service SUPERADMIN_KERBEROS
  *
  * @typedef {Object} VerifyResult
  * @property {boolean} valid

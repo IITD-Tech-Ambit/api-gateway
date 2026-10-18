@@ -1,13 +1,10 @@
 import express, { Router } from 'express';
-import multer from 'multer';
+import { imageUpload as upload } from '../middleware/upload.js';
 
 import { sendSuccess, sendDirectoryError } from '../transcode/envelopes.js';
 import * as d from '../transcode/directory.js';
 import { createUnaryBridge } from './grpcBridge.js';
 
-// In-memory multipart parsing: the gateway re-packs uploaded files as gRPC
-// FileUpload bytes, so it never touches disk.
-const upload = multer({ storage: multer.memoryStorage() });
 const json = express.json();
 const fileUpload = (file) =>
     file ? { filename: file.originalname, content_type: file.mimetype, data: file.buffer } : undefined;
@@ -29,7 +26,6 @@ export default function userRoutes({ user, deadline }) {
             name: req.body?.name || '',
             email: req.body?.email || '',
             password: req.body?.password || '',
-            role: req.body?.role,
             profile_img: fileUpload(req.file),
             profile_img_url: req.body?.profile_img
         },
