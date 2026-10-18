@@ -40,7 +40,7 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
         return {
             proxyReq(proxyReq, req) {
                 req._upstream = upstream;
-                applyIdentityHeaders(proxyReq, getIdentity(req));
+                applyIdentityHeaders(proxyReq, getIdentity(req), config.gatewaySecret);
             },
             proxyRes(proxyRes, req) {
                 req.log?.info({
@@ -55,7 +55,11 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
         };
     }
 
-    const prefix = (p) => (pathname) => pathname === p || pathname.startsWith(`${p}/`);
+    // Case-insensitive and slash-tolerant: Express matches that way, so /API/... must not skip these gates.
+    const prefix = (p) => (pathname) => {
+        const lower = pathname.toLowerCase();
+        return lower === p || lower.startsWith(`${p}/`);
+    };
     const strip = (p) => (pathname) => {
         const rewritten = pathname.slice(p.length);
         return rewritten.startsWith('/') ? rewritten : `/${rewritten}`;
@@ -80,19 +84,12 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
         on: proxyHooks('chatbot', (req) => req.identity ?? null)
     }));
 
-    // Faculty self-edit of their OWN profile — an image upload (multipart) or a
-    // metric-visibility toggle (JSON). Kept as HTTP proxies (not gRPC); scoped to
-    // exactly these two paths so the rest of /api/directory still flows over gRPC.
-    // Session-gated — the backend enforces owner-only from the injected
-    // x-user-kerberos.
+    // HTTP (not gRPC) and session-gated; the backend allows the owner or a superadmin.
     const isFacultySelfEdit = (pathname, req) =>
-        (req?.method === 'POST' && /^\/api\/directory\/faculty\/[^/]+\/image$/.test(pathname)) ||
-        (req?.method === 'PATCH' && /^\/api\/directory\/faculty\/[^/]+\/visibility$/.test(pathname)) ||
-        // Background / Qualifications: owner-only GET (full content incl. hidden,
-        // for the edit view) + PATCH (save). Session-gated so x-user-kerberos is
-        // injected; must be matched here, before the anonymous directory reads.
+        (req?.method === 'POST' && /^\/api\/directory\/faculty\/[^/]+\/image\/?$/i.test(pathname)) ||
+        (req?.method === 'PATCH' && /^\/api\/directory\/faculty\/[^/]+\/visibility\/?$/i.test(pathname)) ||
         ((req?.method === 'GET' || req?.method === 'PATCH') &&
-            /^\/api\/directory\/faculty\/[^/]+\/profile-extras$/.test(pathname));
+            /^\/api\/directory\/faculty\/[^/]+\/profile-extras\/?$/i.test(pathname));
 
     router.use((req, res, next) =>
         isFacultySelfEdit(req.path, req) ? requireSession(req, res, next) : next());
@@ -115,11 +112,10 @@ export default function proxyRoutes({ config, tokenVerifier, logger }) {
     const isDirectoryHttpRead = (pathname, req) => {
         if (req?.method !== 'GET') return false;
         return (
-            pathname === '/api/directory' || pathname === '/api/directory/' ||
-            /^\/api\/directory\/search$/.test(pathname) ||
-            /^\/api\/directory\/grouped$/.test(pathname) ||
-            /^\/api\/directory\/grouped\/[^/]+\/faculties$/.test(pathname) ||
-            /^\/api\/directory\/faculty\/[^/]+\/(profile|research-summary)$/.test(pathname)
+            /^\/api\/directory\/?$/i.test(pathname) ||
+            /^\/api\/directory\/(search|grouped)\/?$/i.test(pathname) ||
+            /^\/api\/directory\/grouped\/[^/]+\/faculties\/?$/i.test(pathname) ||
+            /^\/api\/directory\/faculty\/[^/]+\/(profile|research-summary)\/?$/i.test(pathname)
         );
     };
 

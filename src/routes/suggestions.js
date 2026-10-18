@@ -1,12 +1,9 @@
 import { Router } from 'express';
-import multer from 'multer';
+import { imageUpload as upload } from '../middleware/upload.js';
 
 import { sendSuccess, sendDirectoryError } from '../transcode/envelopes.js';
 import { createUnaryBridge } from './grpcBridge.js';
 
-// In-memory multipart parsing: the gateway re-packs uploaded files as gRPC
-// FileUpload bytes, so it never touches disk.
-const upload = multer({ storage: multer.memoryStorage() });
 const fileUpload = (file) =>
     file ? { filename: file.originalname, content_type: file.mimetype, data: file.buffer } : undefined;
 
