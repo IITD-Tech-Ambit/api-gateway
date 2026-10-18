@@ -25,8 +25,7 @@ message User {
   // IITD category (student / faculty / staff ...).
   string category = 6;
   string uniqueiitdid = 7;
-  // "superadmin" when the user is listed in SUPERADMIN_KERBEROS (may edit any
-  // faculty profile); empty otherwise.
+  // Computed by auth-service; never stored in the JWT.
   string role = 8;
 }
 
