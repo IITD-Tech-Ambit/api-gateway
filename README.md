@@ -232,6 +232,8 @@ cp .env.example .env
 
 Set `GATEWAY_SHARED_SECRET` to the same value as backend and chatbot when those services check the header. `openssl rand -hex 32` is a suitable generator. Leave `ENABLE_AUTH` unset or `true` except for local calls that must run without IITD OAuth.
 
+An empty `GATEWAY_SHARED_SECRET` makes the backend and the chatbot trust whatever `x-user-*` headers the caller sends. Use that only when every upstream is local. Do not aim this process at the production backend: a profile save there is a live edit, and when the faculty member saves their own profile the production worker emails them. A superadmin edit does not. `ENABLE_AUTH=false` is refused when `NODE_ENV` is `production`.
+
 Protos are the committed `protos/` tree (`auth/v1`, `directory/v1`, `search/v1`). `PROTO_DIR` defaults to that directory (resolved from `src/grpc`). The image sets `PROTO_DIR=/app/protos`.
 
 The image is `node:20-alpine`, installs production dependencies, runs as uid 1001, and sets `NODE_ENV=production` and `LOG_LEVEL=info`. It exposes 8080. The metrics port is not in the `EXPOSE` list; publish `9100` separately if a scraper must reach it. Build context is this directory:
