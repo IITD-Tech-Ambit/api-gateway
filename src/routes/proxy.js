@@ -3,10 +3,9 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { makeRequireSession, applyIdentityHeaders } from '../auth/sessionAuth.js';
 
 /**
- * HTTP proxy routes that intentionally stay HTTP (NOT gRPC-ified):
- *   /api/auth/*  -> auth-service (IITD OAuth protocol is HTTP; owned by auth-service)
- *   /chat-api/*  -> chatbot      (browser-facing SSE token stream; session-gated)
- * All other /api/* and /search/* traffic is served over gRPC (see api.js / searchApi.js).
+ * HTTP routes: /api/auth, /chat-api, faculty self-edit, and the directory
+ * reads that must keep metric visibility. Other /api and /search routes are
+ * registered as gRPC in api.js and searchApi.js.
  *
  * @param {{ config: object, tokenVerifier: import('../ports/tokenVerifier.js').TokenVerifier, logger: import('pino').Logger }} deps
  */
